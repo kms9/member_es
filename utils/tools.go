@@ -28,11 +28,10 @@ func GetInterfaceString(v interface{}) string {
 
 func GetClearnType(str string) string {
 
-	result:=strings.Index(str, "(")
-	prefix:="string"
+	result := strings.Index(str, "(")
+	prefix := "string"
 	if result >= 0 {
 		prefix = str[0:result]
 	}
 	return prefix
 }
-

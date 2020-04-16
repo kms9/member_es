@@ -1,14 +1,14 @@
 package process
 
 import (
-	"member_es_basic_api/models"
-	"member_es_basic_api/utils"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/astaxie/beego"
 	"github.com/olivere/elastic"
+	"member_es_basic_api/models"
+	"member_es_basic_api/utils"
 	"regexp"
 	"strings"
 )
@@ -21,25 +21,19 @@ var (
 		"open_id": true,
 		"mobile":  true,
 	}
-)
-
-var (
 	DefaultSearchParams = map[string]map[string]interface{}{
-		"identity": map[string]interface{}{
+		"identity": {
 			"search_type": "eq",
 			"value":       1,
 		},
-		"is_del": map[string]interface{}{
+		"is_del": {
 			"search_type": "str_eq",
 			"value":       "N",
 		},
 	}
-
 	ConDefaultOrder = map[string]string{
 		"lds_status": "lds_status_order",
-
 	}
-
 	DefualutArrSearch = map[string]bool{
 		"sex":                true,
 		"level_id":           true,
@@ -64,7 +58,7 @@ func GetList(mainId string, searchParams map[string]map[string]interface{}, orde
 
 	tmpDefaultSearchParams := DefaultSearchParams
 	for k := range searchParams {
-		for kk  := range DefaultSearchParams {
+		for kk := range DefaultSearchParams {
 			if kk == k {
 				delete(tmpDefaultSearchParams, kk)
 			}
@@ -82,15 +76,14 @@ func GetList(mainId string, searchParams map[string]map[string]interface{}, orde
 	q.Must(elastic.NewExistsQuery("sex"))
 
 	sourceStr, err := q.Source()
-	if err!=nil {
+	if err != nil {
 		beego.Debug(err)
 	}
 	sourceStrB, err := json.Marshal(sourceStr)
-	if err!=nil {
+	if err != nil {
 		beego.Debug(err)
 	}
 	beego.Debug(string(sourceStrB))
-
 
 	searchNext := client.Search().
 		Index(indexStr).
@@ -105,48 +98,44 @@ func GetList(mainId string, searchParams map[string]map[string]interface{}, orde
 		searchNext = searchNext.Size(limitParams["offset"])
 	}
 
-
 	//2019-09-12 17:49:33  处理多个order 并且控制
 
 	if len(orderParams) > 0 {
 
+		for _, orderParamItem := range orderParams {
 
-		for _, orderParamItem:=range orderParams {
+			orderByField := orderParamItem["orderBy"]
+			//判断存在给定的默认分类参数中
+			if _, ok := ConDefaultOrder[orderParamItem["orderBy"]]; ok {
+				//
+				orderByField = ConDefaultOrder[orderParamItem["orderBy"]]
+			}
 
-				orderByField:=orderParamItem["orderBy"]
-				//判断存在给定的默认分类参数中
-				if _, ok := ConDefaultOrder[orderParamItem["orderBy"]]; ok {
-					//
-					orderByField = ConDefaultOrder[orderParamItem["orderBy"]]
-				}
+			ascending := true
+			if orderParamItem["sort"] == "desc" {
+				ascending = false
+			}
 
-				ascending := true
-				if orderParamItem["sort"] == "desc" {
-					ascending = false
-				}
+			builder := elastic.SortInfo{Field: orderByField, Ascending: ascending}
+			searchNext.SortWithInfo(builder)
 
-				builder := elastic.SortInfo{Field: orderByField, Ascending: ascending}
-				searchNext.SortWithInfo(builder)
-
-				src1, err := builder.Source()
-				beego.Debug(err)
-				data1, err := json.Marshal(src1)
-				beego.Debug(string(data1), err)
+			src1, err := builder.Source()
+			beego.Debug(err)
+			data1, err := json.Marshal(src1)
+			beego.Debug(string(data1), err)
 		}
 	}
-
 
 	searchResult, err := searchNext.
 		Pretty(true).
 		Do(context.TODO())
-
 
 	if err != nil {
 		beego.Debug(err)
 	}
 
 	resList = make([]map[string]interface{}, 0)
-	total   = 0
+	total = 0
 
 	if err == nil && searchResult.Error == nil {
 
@@ -163,7 +152,6 @@ func GetList(mainId string, searchParams map[string]map[string]interface{}, orde
 
 			err := json.Unmarshal(*hit.Source, &item)
 
-
 			beego.Debug(item)
 
 			resList = append(resList, item)
@@ -175,7 +163,7 @@ func GetList(mainId string, searchParams map[string]map[string]interface{}, orde
 	return resList, total, err
 }
 
-func GetListV2(mainId string, sourceParams []interface{},  searchParams map[string]map[string]interface{}, orderParams []map[string]string, isScroll bool, scrollId string, limitParams map[string]int) (resList []map[string]interface{}, total int64, reScrollId string, err error) {
+func GetListV2(mainId string, sourceParams []interface{}, searchParams map[string]map[string]interface{}, orderParams []map[string]string, isScroll bool, scrollId string, limitParams map[string]int) (resList []map[string]interface{}, total int64, reScrollId string, err error) {
 
 	////is_scroll
 	//
@@ -187,16 +175,16 @@ func GetListV2(mainId string, sourceParams []interface{},  searchParams map[stri
 
 	indexStr := beego.AppConfig.String("EsIndex") + mainId
 
-	var searchResult * elastic.SearchResult
+	var searchResult *elastic.SearchResult
 	//var reScrollId string
 
-	if len(strings.Trim(scrollId, " "))==0 {
+	if len(strings.Trim(scrollId, " ")) == 0 {
 		q := elastic.NewBoolQuery()
 
 		//文档地址:  http://wiki.martech-global.com:8086/web/#/16?page_id=674
 		tmpDefaultSearchParams := DefaultSearchParams
 		for k := range searchParams {
-			for kk  := range DefaultSearchParams {
+			for kk := range DefaultSearchParams {
 				if kk == k {
 					delete(tmpDefaultSearchParams, kk)
 				}
@@ -310,13 +298,13 @@ func GetListV2(mainId string, sourceParams []interface{},  searchParams map[stri
 					tmpStr := fmt.Sprintf("%v", item["value"])
 
 					reg := regexp.MustCompile(StrRegex)
-					matched:= reg.FindStringSubmatch(tmpStr)
+					matched := reg.FindStringSubmatch(tmpStr)
 
 					tmpValue := "*" + tmpStr + "*"
 
 					if len(matched) > 0 {
 						q = q.Must(elastic.NewWildcardQuery(k+".keyword", tmpValue))
-					}else{
+					} else {
 						q = q.Must(elastic.NewMatchPhraseQuery(k, tmpValue).Slop(0))
 					}
 
@@ -325,13 +313,13 @@ func GetListV2(mainId string, sourceParams []interface{},  searchParams map[stri
 					tmpStr := fmt.Sprintf("%v", item["value"])
 
 					reg := regexp.MustCompile(StrRegex)
-					matched:= reg.FindStringSubmatch(tmpStr)
+					matched := reg.FindStringSubmatch(tmpStr)
 
 					tmpValue := "*" + tmpStr + "*"
 
-					if len(matched) > 0                    {
+					if len(matched) > 0 {
 						q = q.MustNot(elastic.NewWildcardQuery(k+".keyword", tmpValue))
-					}else{
+					} else {
 						q = q.MustNot(elastic.NewMatchPhraseQuery(k, tmpValue).Slop(0))
 					}
 
@@ -414,11 +402,11 @@ func GetListV2(mainId string, sourceParams []interface{},  searchParams map[stri
 							endStr := fmt.Sprintf("%v", end)
 
 							if start != nil && len(startStr) > 0 {
-								 tagQuery.Filter(elastic.NewRangeQuery("create_time").Gte(start))
+								tagQuery.Filter(elastic.NewRangeQuery("create_time").Gte(start))
 							}
 
 							if end != nil && len(endStr) > 0 {
-								 tagQuery.Filter(elastic.NewRangeQuery("create_time").Lte(end))
+								tagQuery.Filter(elastic.NewRangeQuery("create_time").Lte(end))
 							}
 						}
 
@@ -571,15 +559,14 @@ func GetListV2(mainId string, sourceParams []interface{},  searchParams map[stri
 
 		q.Must(elastic.NewExistsQuery("sex"))
 
-
 		searchNext := client.Search().
 			Index(indexStr).
 			Query(q)
 
 		if len(sourceParams) > 0 {
 
-			t:=make([]string, 0)
-			for _,v:=range sourceParams{
+			t := make([]string, 0)
+			for _, v := range sourceParams {
 				t = append(t, v.(string))
 			}
 
@@ -587,15 +574,13 @@ func GetListV2(mainId string, sourceParams []interface{},  searchParams map[stri
 			searchNext.FetchSourceContext(sourceField)
 		}
 
-
 		//beego.Debug(all.Source())
 
 		if len(orderParams) > 0 {
 
+			for _, orderParamItem := range orderParams {
 
-			for _, orderParamItem:=range orderParams {
-
-				orderByField:=orderParamItem["orderBy"]
+				orderByField := orderParamItem["orderBy"]
 				//判断存在给定的默认分类参数中
 				if _, ok := ConDefaultOrder[orderParamItem["orderBy"]]; ok {
 					//
@@ -628,7 +613,6 @@ func GetListV2(mainId string, sourceParams []interface{},  searchParams map[stri
 
 		beego.Debug(err)
 
-
 		if isScroll {
 			pageSize := 10
 
@@ -636,12 +620,12 @@ func GetListV2(mainId string, sourceParams []interface{},  searchParams map[stri
 				pageSize = limitParams["offset"]
 			}
 
-			qT:=client.Scroll().Index(indexStr).Scroll("5m").Query(q).Size(pageSize)
+			qT := client.Scroll().Index(indexStr).Scroll("5m").Query(q).Size(pageSize)
 
 			if len(sourceParams) > 0 {
 
-				t:=make([]string, 0)
-				for _,v:=range sourceParams{
+				t := make([]string, 0)
+				for _, v := range sourceParams {
 					t = append(t, v.(string))
 				}
 
@@ -649,9 +633,9 @@ func GetListV2(mainId string, sourceParams []interface{},  searchParams map[stri
 				qT.FetchSourceContext(sourceField)
 			}
 
-			searchResult, err =qT.Do(context.Background())
+			searchResult, err = qT.Do(context.Background())
 
-		}else{
+		} else {
 			searchResult, err = searchNext.
 				Pretty(true).
 				Do(context.TODO())
@@ -659,25 +643,22 @@ func GetListV2(mainId string, sourceParams []interface{},  searchParams map[stri
 
 	}
 
-
 	//2019-09-12 17:49:33  处理多个order 并且控制
 
-	if isScroll && len(scrollId)>0{
-		tmp:=client.Scroll("5m").ScrollId(scrollId)
+	if isScroll && len(scrollId) > 0 {
+		tmp := client.Scroll("5m").ScrollId(scrollId)
 		searchResult, err = tmp.Do(context.Background())
 	}
 
-
-
 	resList = make([]map[string]interface{}, 0)
-	total   = 0
+	total = 0
 
 	if err != nil {
 		beego.Debug(err)
-		return  resList, 0, reScrollId, nil
+		return resList, 0, reScrollId, nil
 	}
 
-	if err == nil && searchResult!=nil && searchResult.Error == nil {
+	if err == nil && searchResult != nil && searchResult.Error == nil {
 
 		if searchResult.Hits == nil {
 			err = errors.New("expected SearchResult.Hits != nil; got nil")
@@ -685,7 +666,7 @@ func GetListV2(mainId string, sourceParams []interface{},  searchParams map[stri
 
 		if len(searchResult.ScrollId) > 0 {
 
-			reScrollId  = searchResult.ScrollId
+			reScrollId = searchResult.ScrollId
 
 			beego.Debug(len(reScrollId))
 			beego.Debug(err)
@@ -712,7 +693,7 @@ func GetListV2(mainId string, sourceParams []interface{},  searchParams map[stri
 
 //进行递归查询
 
-func ParseSearchInfo(searchParams map[string]map[string]interface{}, q *elastic.BoolQuery) (*elastic.BoolQuery) {
+func ParseSearchInfo(searchParams map[string]map[string]interface{}, q *elastic.BoolQuery) *elastic.BoolQuery {
 
 	//根据参数 进行修改 如果在给定的列表中
 	for k, item := range searchParams {
@@ -720,7 +701,6 @@ func ParseSearchInfo(searchParams map[string]map[string]interface{}, q *elastic.
 		if _, ok := item["search_type"]; ok {
 
 			beego.Debug(k, item)
-
 
 			switch item["search_type"].(string) {
 
@@ -808,16 +788,16 @@ func ParseSearchInfo(searchParams map[string]map[string]interface{}, q *elastic.
 				end := item["value"].(map[string]interface{})["end"]
 				endStr := fmt.Sprintf("%v", end)
 
-				if start != nil && len(startStr) > 0 && end==nil {
+				if start != nil && len(startStr) > 0 && end == nil {
 					q = q.Filter(elastic.NewRangeQuery(k).Gte(start))
 				}
 
 				if end != nil && len(endStr) > 0 && start == nil {
-					q =  q.Must(q.Filter(elastic.NewRangeQuery(k).Lte(end)))
+					q = q.Must(q.Filter(elastic.NewRangeQuery(k).Lte(end)))
 				}
 
-				if   start != nil && len(startStr) > 0  &&  end != nil && len(endStr) > 0{
-					q =  q.Filter(elastic.NewRangeQuery(k).Gte(start).Lte(end))
+				if start != nil && len(startStr) > 0 && end != nil && len(endStr) > 0 {
+					q = q.Filter(elastic.NewRangeQuery(k).Gte(start).Lte(end))
 
 				}
 
@@ -826,13 +806,13 @@ func ParseSearchInfo(searchParams map[string]map[string]interface{}, q *elastic.
 				tmpStr := fmt.Sprintf("%v", item["value"])
 
 				reg := regexp.MustCompile(StrRegex)
-				matched:= reg.FindStringSubmatch(tmpStr)
+				matched := reg.FindStringSubmatch(tmpStr)
 
 				tmpValue := "*" + tmpStr + "*"
 
 				if len(matched) > 0 {
 					q = q.Must(elastic.NewWildcardQuery(k+".keyword", tmpValue))
-				}else{
+				} else {
 					q = q.Must(elastic.NewMatchPhraseQuery(k, tmpValue).Slop(0))
 				}
 
@@ -841,13 +821,13 @@ func ParseSearchInfo(searchParams map[string]map[string]interface{}, q *elastic.
 				tmpStr := fmt.Sprintf("%v", item["value"])
 
 				reg := regexp.MustCompile(StrRegex)
-				matched:= reg.FindStringSubmatch(tmpStr)
+				matched := reg.FindStringSubmatch(tmpStr)
 
 				tmpValue := "*" + tmpStr + "*"
 
-				if len(matched) > 0                    {
+				if len(matched) > 0 {
 					q = q.MustNot(elastic.NewWildcardQuery(k+".keyword", tmpValue))
-				}else{
+				} else {
 					q = q.MustNot(elastic.NewMatchPhraseQuery(k, tmpValue).Slop(0))
 				}
 
@@ -1059,45 +1039,45 @@ func ParseSearchInfo(searchParams map[string]map[string]interface{}, q *elastic.
 
 			case "multi":
 
-				tq:=elastic.NewBoolQuery()
+				tq := elastic.NewBoolQuery()
 				beego.Debug(tq)
 
 				//tq1:= make([]elastic.Query, 0)
-				itemList	:= item["value"].([]interface{})
-				multiOpt 	:= item["multi_op"].(string)
+				itemList := item["value"].([]interface{})
+				multiOpt := item["multi_op"].(string)
 
-				for _, mvv:=range itemList{
+				for _, mvv := range itemList {
 
 					params := mvv.(map[string]interface{})
 
 					beego.Debug(params)
 
-					var sType, multiOp  string
+					var sType, multiOp string
 
-					var tp  = make(map[string]map[string]interface{})
-					ttq:=elastic.NewBoolQuery()
+					var tp = make(map[string]map[string]interface{})
+					ttq := elastic.NewBoolQuery()
 
 					sType = params["search_type"].(string)
 					multiOp = params["multi_op"].(string)
 
 					stp := params["value"].(map[string]interface{})
-					for st, sv:=range stp{
+					for st, sv := range stp {
 						tp[st] = sv.(map[string]interface{})
 					}
 
 					beego.Debug(sType, multiOp, stp)
 
-					if len(sType)> 0 && len(multiOp) > 0 && sType=="multi" {
+					if len(sType) > 0 && len(multiOp) > 0 && sType == "multi" {
 
 						beego.Debug(tp)
 
 						tmpQ := ParseSearchInfo(tp, ttq)
 
-						ts, err:=tmpQ.Source()
-						if err!=nil {
+						ts, err := tmpQ.Source()
+						if err != nil {
 							beego.Debug(err)
 						}
-						tss,err:=json.Marshal(ts)
+						tss, err := json.Marshal(ts)
 						beego.Debug(string(tss), err)
 
 						//tq1=append(tq1, tmpQ)
@@ -1109,7 +1089,7 @@ func ParseSearchInfo(searchParams map[string]map[string]interface{}, q *elastic.
 						case "not":
 							tq.MustNot(tmpQ)
 						default:
-							beego.Debug("错误的逻辑关系",sType)
+							beego.Debug("错误的逻辑关系", sType)
 						}
 					}
 				}

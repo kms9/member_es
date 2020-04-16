@@ -40,5 +40,5 @@ func init() {
 		IdleTimeout: 180 * time.Second,
 		Dial:        dialFunc,
 	}
-    RedisPool.Wait = true
+	RedisPool.Wait = true
 }

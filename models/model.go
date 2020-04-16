@@ -54,29 +54,26 @@ type WxUser struct {
 
 //wx_system_user_id, main_id, fans_id, member_id, id_string,create_time
 type TagString struct {
-	Id             	   int64	`json:"id" orm:"column(id)"`
-	MainId             int		`json:"main_id" orm:"column(main_id)"`
-	IdString           string	`json:"id_string" orm:"column(id_string)"`
-	WxSystemUserId     int		`json:"wx_system_user_id" orm:"column(wx_system_user_id)"`
-	FansId             int64	`json:"fans_id" orm:"column(fans_id)"`
-	MemberId           int		`json:"member_id" orm:"column(member_id)"`
-	CreateTime         int		`json:"create_time" orm:"column(create_time)"`
+	Id             int64  `json:"id" orm:"column(id)"`
+	MainId         int    `json:"main_id" orm:"column(main_id)"`
+	IdString       string `json:"id_string" orm:"column(id_string)"`
+	WxSystemUserId int    `json:"wx_system_user_id" orm:"column(wx_system_user_id)"`
+	FansId         int64  `json:"fans_id" orm:"column(fans_id)"`
+	MemberId       int    `json:"member_id" orm:"column(member_id)"`
+	CreateTime     int    `json:"create_time" orm:"column(create_time)"`
 }
 
-
-
 type UserTagRel struct {
-
-	MainId             int				`json:"main_id" orm:"column(main_id)"`
-	IdString           string			`json:"id_string" orm:"column(id_string)"`
-	CreateTime         int				`json:"create_time" orm:"column(create_time)"`
-	MemberId           int				`json:"member_id" orm:"column(member_id)"`
-	FansIdRel		   *FansIdRel		`json:"fans_id_rel"`
+	MainId     int        `json:"main_id" orm:"column(main_id)"`
+	IdString   string     `json:"id_string" orm:"column(id_string)"`
+	CreateTime int        `json:"create_time" orm:"column(create_time)"`
+	MemberId   int        `json:"member_id" orm:"column(member_id)"`
+	FansIdRel  *FansIdRel `json:"fans_id_rel"`
 }
 
 type FansIdRel struct {
-	Name 	string	`json:"name"`
-	Parent 	string	`json:"parent"`
+	Name   string `json:"name"`
+	Parent string `json:"parent"`
 }
 
 type AppCustomersSetUserTag struct {

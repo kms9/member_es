@@ -1,12 +1,12 @@
 package controllers
 
 import (
-	. "member_es_basic_api/middleware"
-	"member_es_basic_api/process"
-	"member_es_basic_api/utils"
 	"encoding/json"
 	"github.com/astaxie/beego"
 	"github.com/bitly/go-simplejson"
+	. "member_es_basic_api/middleware"
+	"member_es_basic_api/process"
+	"member_es_basic_api/utils"
 	"strconv"
 	"strings"
 )
@@ -81,11 +81,11 @@ func (controller *SearchController) GetList() {
 	beego.Debug(orderParamsTmp)
 	for _, v := range orderParamsTmp {
 
-		tmpOrder:=make(map[string]string)
+		tmpOrder := make(map[string]string)
 
 		tmpOrderV := v.(map[string]interface{})
 
-		for kk, vv:=range tmpOrderV  {
+		for kk, vv := range tmpOrderV {
 			tmpOrder[kk] = vv.(string)
 		}
 
@@ -120,7 +120,6 @@ func (controller *SearchController) GetList() {
 	ctl.RenderOutput(Success(reMap))
 }
 
-
 func (controller *SearchController) GetListV2() {
 	ic := NewContainer()
 	ctl := &BeegoController{Controller: controller.Controller}
@@ -145,7 +144,7 @@ func (controller *SearchController) GetListV2() {
 
 	isScroll := false
 
-	scrollId  := ""
+	scrollId := ""
 
 	orderParamsTmp := make([]interface{}, 0)
 
@@ -161,7 +160,7 @@ func (controller *SearchController) GetListV2() {
 
 	mainId := ""
 
-//	isDeepPage:=false
+	//	isDeepPage:=false
 
 	for k, v := range tmpReq {
 		//beego.Debug(k, v)
@@ -207,11 +206,11 @@ func (controller *SearchController) GetListV2() {
 
 	for _, v := range orderParamsTmp {
 
-		tmpOrder:=make(map[string]string)
+		tmpOrder := make(map[string]string)
 
 		tmpOrderV := v.(map[string]interface{})
 
-		for kk, vv:=range tmpOrderV  {
+		for kk, vv := range tmpOrderV {
 			tmpOrder[kk] = vv.(string)
 		}
 
@@ -242,11 +241,11 @@ func (controller *SearchController) GetListV2() {
 
 	//
 
-	resList, total, reScrollId, err := process.GetListV2(mainId, sourceParams, searchParams, orderParams, isScroll, scrollId,  limitParams)
+	resList, total, reScrollId, err := process.GetListV2(mainId, sourceParams, searchParams, orderParams, isScroll, scrollId, limitParams)
 
-	reMap["list"] 		= resList
-	reMap["total"] 		= total
-	reMap["scrollId"] 	= reScrollId
+	reMap["list"] = resList
+	reMap["total"] = total
+	reMap["scrollId"] = reScrollId
 
 	if err != nil {
 		ctl.RenderOutput(NormalErr(200, 0, err.Error(), ""))
@@ -269,12 +268,11 @@ func (controller *SearchController) GetListV3() {
 		return
 	}
 
-	reMap  := make(map[string]interface{})
+	reMap := make(map[string]interface{})
 
-	reMap["list"] 		= "asdfasd"
-	reMap["total"] 		= 20
-	reMap["scrollId"] 	= "sdfasdfasdf"
-
+	reMap["list"] = "asdfasd"
+	reMap["total"] = 20
+	reMap["scrollId"] = "sdfasdfasdf"
 
 	ctl.RenderOutput(Success(reMap))
 }

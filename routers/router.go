@@ -1,8 +1,8 @@
 package routers
 
 import (
-	"member_es_basic_api/controllers"
 	"github.com/astaxie/beego"
+	"member_es_basic_api/controllers"
 	"net/http"
 )
 

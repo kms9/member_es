@@ -1,15 +1,15 @@
 package utils
 
 import (
-	"encoding/binary"
-	"time"
-	"sync/atomic"
-	"os"
-	"io"
-	"fmt"
 	"crypto/md5"
 	"crypto/rand"
+	"encoding/binary"
 	"encoding/hex"
+	"fmt"
+	"io"
+	"os"
+	"sync/atomic"
+	"time"
 )
 
 var machineId = readMachineId()
@@ -60,4 +60,3 @@ func readRandomUint32() uint32 {
 	}
 	return uint32((uint32(b[0]) << 0) | (uint32(b[1]) << 8) | (uint32(b[2]) << 16) | (uint32(b[3]) << 24))
 }
-

@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/astaxie/beego"
-	_ "member_es_basic_api/models"
 	"github.com/astaxie/beego/plugins/cors"
+	_ "member_es_basic_api/models"
 	_ "member_es_basic_api/routers"
 )
 
@@ -14,7 +14,6 @@ func main() {
 	}
 	beego.SetLogFuncCall(true)
 	beego.BeeLogger.Async()
-	// beego.Run()
 
 	beego.InsertFilter("*", beego.BeforeRouter, cors.Allow(&cors.Options{
 		//允许访问所有源
